@@ -19,7 +19,7 @@ const Cart = ({ cart, onClose }) => {
                     </div>
                 ))}
             </Modal.Body>
-            <Modal.Footer>
+            <Modal.Footer> 
                 <Button variant="secondary" onClick={onClose}>
                     Fechar
                 </Button>
