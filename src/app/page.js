@@ -54,15 +54,18 @@ const Home = () => {
     };
 
     const handleAddToCart = () => {
-        // Verifique se a quantidade de complementos ultrapassa a quantidade permitida
-        if (selectedToppings.length > selectedAçai.qtdComplemento) {
-            alert(`Você pode escolher até ${selectedAçai.qtdComplemento} complementos.`);
-            return;
-        }
-        
+        if (!selectedAçai) return; // Adicionando verificação para evitar undefined
+
+        // Calcular o custo adicional baseado no número de complementos
+        const additionalToppingsCount = selectedToppings.length;
+        const additionalCost = additionalToppingsCount > selectedAçai.qtdComplemento ? (additionalToppingsCount - selectedAçai.qtdComplemento) * 2 : 0;
+
         // Armazene o açaí e os complementos
         const cartItem = {
-            açaí: selectedAçai,
+            açaí: {
+                ...selectedAçai,
+                additionalCost // Adiciona o custo adicional ao item do carrinho
+            },
             toppings: selectedToppings
         };
 
@@ -81,6 +84,18 @@ const Home = () => {
 
     const handleCloseCart = () => {
         setShowCart(false);
+    };
+
+    // Calcular o valor total do carrinho
+    const calculateTotalPrice = () => {
+        return cart.reduce((total, item) => {
+            // Verifica se item.açai e item.açai.price estão definidos
+            if (item.açaí && typeof item.açaí.price === 'number') {
+                const itemPrice = item.açaí.price + (item.açaí.additionalCost || 0); // Preço base + custo adicional
+                return total + itemPrice;
+            }
+            return total; // Se não estiver definido, retorna o total sem alteração
+        }, 0);
     };
 
     return (
@@ -114,7 +129,7 @@ const Home = () => {
                 </Modal.Header>
                 <Modal.Body>
                     <h5>Tamanho: {selectedAçai?.size}</h5>
-                    <h5>Preço: R${selectedAçai?.price.toFixed(2)}</h5>
+                    <h5>Preço: R${selectedAçai?.price?.toFixed(2)}</h5>
                     <h6>Escolha seus complementos:</h6>
                     {toppings.map(topping => (
                         <div key={topping.id}>
@@ -127,6 +142,12 @@ const Home = () => {
                             {topping.name}
                         </div>
                     ))}
+                    {/* Mensagem de alerta se exceder a quantidade de complementos */}
+                    {selectedAçai && selectedToppings.length > selectedAçai.qtdComplemento && (
+                        <p style={{ color: 'red' }}>
+                            Você está escolhendo {selectedToppings.length - selectedAçai.qtdComplemento} complemento(s) extra!
+                        </p>
+                    )}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>
@@ -144,7 +165,17 @@ const Home = () => {
                     <Modal.Title>Adicionar ao Carrinho</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Você deseja adicionar esse açaí ao carrinho?
+                    <h5>Açai: {selectedAçai?.name}</h5>
+                    <h6>Complementos selecionados: {selectedToppings.join(', ')}</h6>
+                    <h6>Total: R$
+                        {selectedAçai ? (
+                            (selectedAçai.price + (selectedToppings.length > selectedAçai.qtdComplemento ? (selectedToppings.length - selectedAçai.qtdComplemento) * 2 : 0)).toFixed(2)
+                        ) : "0.00"}
+                    </h6>
+                    <p>
+                        {selectedToppings.length > selectedAçai?.qtdComplemento &&
+                        `Você escolheu ${selectedToppings.length - selectedAçai.qtdComplemento} complemento(s) adicional(is).`}
+                    </p>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => {
@@ -160,7 +191,30 @@ const Home = () => {
             </Modal>
 
             {/* Carrinho */}
-            {showCart && <Cart cart={cart} onClose={handleCloseCart} />}
+            {showCart && (
+                <Cart 
+                    cart={cart} 
+                    totalPrice={calculateTotalPrice()} 
+                    onClose={handleCloseCart} 
+                />
+            )}
+
+            {/* Botão Finalizar Compra */}
+            {cart.length > 0 && (
+                <button 
+                    className="btn btn-primary ctn" 
+                    style={{
+                        position: 'fixed', // Fixa o botão na tela
+                        bottom: '20px',    // Distância do fundo da tela
+                        right: '20px',      // Distância do lado esquerdo da tela
+                        padding: '10px 20px', // Ajusta o tamanho do botão
+                        fontSize: '16px'   // Tamanho da fonte do botão
+                    }} 
+                    onClick={() => setShowCart(true)} // Abre o modal do carrinho
+                >
+                    Finalizar compra
+                </button>
+            )}
         </div>
     );
 };
