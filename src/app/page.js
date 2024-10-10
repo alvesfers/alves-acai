@@ -54,47 +54,47 @@ const Home = () => {
     };
 
     const handleAddToCart = () => {
-        if (!selectedAçai) return; // Adicionando verificação para evitar undefined
+        if (!selectedAçai) return;
 
-        // Calcular o custo adicional baseado no número de complementos
         const additionalToppingsCount = selectedToppings.length;
         const additionalCost = additionalToppingsCount > selectedAçai.qtdComplemento ? (additionalToppingsCount - selectedAçai.qtdComplemento) * 2 : 0;
 
-        // Armazene o açaí e os complementos
         const cartItem = {
             açaí: {
                 ...selectedAçai,
-                additionalCost // Adiciona o custo adicional ao item do carrinho
+                additionalCost
             },
             toppings: selectedToppings
         };
 
-        // Adicione o item ao carrinho
         setCart([...cart, cartItem]);
 
-        // Mostrar o modal de confirmação
         setShowConfirmationModal(true);
-        handleClose(); // Fecha o modal de seleção de açaí
+        handleClose(); 
     };
 
     const handleFinalizePurchase = () => {
         setShowConfirmationModal(false);
-        setShowCart(true); // Exibe o carrinho ao finalizar
+        setShowCart(true); 
     };
 
     const handleCloseCart = () => {
         setShowCart(false);
     };
 
-    // Calcular o valor total do carrinho
+    // Função para remover item do carrinho
+    const handleRemoveItem = (index) => {
+        const updatedCart = cart.filter((_, i) => i !== index); // Remove o item pelo índice
+        setCart(updatedCart); // Atualiza o estado do carrinho
+    };
+
     const calculateTotalPrice = () => {
         return cart.reduce((total, item) => {
-            // Verifica se item.açai e item.açai.price estão definidos
             if (item.açaí && typeof item.açaí.price === 'number') {
-                const itemPrice = item.açaí.price + (item.açaí.additionalCost || 0); // Preço base + custo adicional
+                const itemPrice = item.açaí.price + (item.açaí.additionalCost || 0);
                 return total + itemPrice;
             }
-            return total; // Se não estiver definido, retorna o total sem alteração
+            return total;
         }, 0);
     };
 
@@ -112,7 +112,7 @@ const Home = () => {
                                 size={açai.size} 
                                 price={açai.price} 
                                 qtdComplemento={açai.qtdComplemento}
-                                onShow={() => handleShow(açai)} // Passar função para abrir modal
+                                onShow={() => handleShow(açai)}
                             />
                         </div>
                     ))}
@@ -180,7 +180,7 @@ const Home = () => {
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => {
                         setShowConfirmationModal(false);
-                        setShowModal(true); // Volta para a tela de seleção de açaí
+                        setShowModal(true);
                     }}>
                         Comprar mais
                     </Button>
@@ -196,6 +196,7 @@ const Home = () => {
                     cart={cart} 
                     totalPrice={calculateTotalPrice()} 
                     onClose={handleCloseCart} 
+                    onRemoveItem={handleRemoveItem} // Passando a função para remover itens
                 />
             )}
 
@@ -204,13 +205,13 @@ const Home = () => {
                 <button 
                     className="btn btn-primary ctn" 
                     style={{
-                        position: 'fixed', // Fixa o botão na tela
-                        bottom: '20px',    // Distância do fundo da tela
-                        right: '20px',      // Distância do lado esquerdo da tela
-                        padding: '10px 20px', // Ajusta o tamanho do botão
-                        fontSize: '16px'   // Tamanho da fonte do botão
+                        position: 'fixed', 
+                        bottom: '20px',   
+                        right: '20px',    
+                        padding: '10px 20px', 
+                        fontSize: '16px'
                     }} 
-                    onClick={() => setShowCart(true)} // Abre o modal do carrinho
+                    onClick={() => setShowCart(true)}
                 >
                     Finalizar compra
                 </button>
