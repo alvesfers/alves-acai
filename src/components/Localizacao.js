@@ -7,14 +7,14 @@ const containerStyle = {
 };
 
 const center = {
-  lat: -25.4333, // Substitua pelas coordenadas corretas
-  lng: -49.2617  // Substitua pelas coordenadas corretas
+  lat: -25.4333,
+  lng: -49.2617 
 };
 
 const Localizacao = () => {
   return (
     <div className="mt-5">
-      <LoadScript googleMapsApiKey="SUA_CHAVE_API_AQUI"> {/* Substitua pela sua chave de API */}
+      <LoadScript googleMapsApiKey="AIzaSyBahUObidgNkGPbsGIbs62XPlPpULrWKBU">
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}

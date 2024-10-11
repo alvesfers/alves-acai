@@ -1,6 +1,4 @@
-// src/app/create-acai/page.js
-
-"use client"; // Certifique-se de que o componente é um client component
+"use client";
 
 import React, { useState } from 'react';
 
@@ -13,15 +11,16 @@ const CriarAcai = () => {
     const [tamanho, setTamanho] = useState('');
 
     const handleSubmit = async (event) => {
-        event.preventDefault(); // Impede o comportamento padrão do formulário
+        event.preventDefault();
 
+        // Convertendo os valores adequadamente
         const novoAcai = {
             nome: nome,
             descricao: descricao,
-            preco: parseFloat(preco), // Converte o preço para float
-            qtdComplemento: qtdComplemento,
+            preco: parseFloat(preco), 
+            qtdComplemento: parseInt(qtdComplemento, 10),  // Certificando que é um número inteiro
             isTrufado: isTrufado,
-            tamanho: tamanho // A variável tamanho agora deve estar definida
+            tamanho: tamanho
         };
 
         try {
@@ -39,7 +38,8 @@ const CriarAcai = () => {
 
             const data = await response.json();
             console.log('Açai criado com sucesso:', data);
-            // Limpa os campos do formulário após o sucesso
+
+            // Limpar o formulário
             setNome('');
             setDescricao('');
             setPreco('');
@@ -75,6 +75,7 @@ const CriarAcai = () => {
                 <label>Preço:</label>
                 <input 
                     type="number" 
+                    step="0.01"  // Permite inserir valores decimais
                     value={preco} 
                     onChange={(e) => setPreco(e.target.value)} 
                     required 
