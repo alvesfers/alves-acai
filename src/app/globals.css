@@ -1,0 +1,84 @@
+/* styles/globals.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+body {
+  background: linear-gradient(#ffdea0, #f0dfbf, #ffdea0);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Estilos Globais */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+footer {
+  margin-top: auto; /* empurra o footer para o final */
+  background-color: #333; /* cor de fundo do footer, opcional */
+  color: white; /* cor do texto, opcional */
+  text-align: center;
+  padding: 10px;
+  width: 100%;
+  position: relative;
+  bottom: 0;
+}
+
+.ctn{
+  background-color: #442230 !important;
+  border: solid, #ffbd59 1px !important;
+}
+
+.ctn:hover{
+  background-color: #ffbd59 !important;
+  border: solid, #442230 1px !important;
+}
+
+.card-acai{
+  padding: 10px;
+  border-radius: 20px;
+  background-color: #442230 !important;
+}
+.card-acai:hover{
+ background-color: #723e53 !important;
+}
+.card-acai div h5 {
+  font-size: 25px;
+  text-align: center;
+  color: #fff;
+}
+.card-acai div p {
+  font-size: 15px;
+  color: white;
+}
+.card-acai div hr {
+  color: white;
+}
+.card-acai div div {
+  text-align: center;
+}
+.card-acai div div button {
+  border: #ffbd59;
+  background-color: #ffbd59;
+  color: white;
+}
+
+.card-acai div div button:hover {
+  border: #ffd79b;
+  background-color: #ffd79b;
+  color: white;
+}
+
+h2{
+  text-align: center !important;
+  font-size: 50px !important;
+}
+h3{
+  font-size: 45px !important;
+}
