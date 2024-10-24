@@ -185,7 +185,7 @@ const Home = () => {
                         Comprar mais
                     </Button>
                     <Button variant="primary" onClick={handleFinalizePurchase}>
-                        Finalizar compra
+                        Pagamento/Entrega
                     </Button>
                 </Modal.Footer>
             </Modal>
