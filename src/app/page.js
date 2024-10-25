@@ -5,98 +5,119 @@ import Banner from '../components/Banner';
 import Card from '../components/Card';
 import Section from '../components/Section';
 import Localizacao from '../components/Localizacao';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import Cart from '../components/Cart'; // Importando o componente Cart
+import Cart from '../components/Cart';
+import axios from 'axios';
 
 const Home = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedAçai, setSelectedAçai] = useState(null);
     const [selectedToppings, setSelectedToppings] = useState([]);
-    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-    const [cart, setCart] = useState([]); // Estado para o carrinho
-    const [showCart, setShowCart] = useState(false); // Estado para exibir o carrinho
+    const [additionalToppings, setAdditionalToppings] = useState([]);
+    const [cart, setCart] = useState([]);
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [acais, setAcais] = useState([]);
+    const [acompanhamentos, setAcompanhamentos] = useState([]);
 
-    // Array de tamanhos do açaí
-    const normal = [
-        { name: 'Pequeno', size: '300 ml', price: 11.00, qtdComplemento: 3 },
-        { name: 'Médio', size: '450 ml', price: 15.00, qtdComplemento: 5 },
-        { name: 'Grande', size: '600 ml', price: 18.00, qtdComplemento: 6 },
-        { name: 'Família', size: '1 L', price: 25.00, qtdComplemento: 8 },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const produtosResponse = await axios.get('http://localhost:8080/produtos');
+                const acaisFiltrados = produtosResponse.data.filter(produto => produto.tipoProduto === 1);
+                setAcais(acaisFiltrados);
 
-    // Complementos disponíveis
-    const toppings = [
-        { id: 1, name: 'Granola' },
-        { id: 2, name: 'Leite Condensado' },
-        { id: 3, name: 'Açaí em Pó' },
-        { id: 4, name: 'Coco Ralado' },
-        { id: 5, name: 'Banana' },
-    ];
+                const acompanhamentosResponse = await axios.get('http://localhost:8080/acompanhamentos');
+                setAcompanhamentos(acompanhamentosResponse.data);
+            } catch (error) {
+                console.error('Erro ao buscar dados da API:', error);
+            }
+        };
+        fetchData();
+
+        const savedCart = JSON.parse(localStorage.getItem('userCart')) || [];
+        setCart(savedCart);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('userCart', JSON.stringify(cart));
+    }, [cart]);
 
     const handleShow = (açai) => {
         setSelectedAçai(açai);
         setShowModal(true);
+        setSelectedToppings([]);
+        setAdditionalToppings([]);
     };
 
     const handleClose = () => {
         setShowModal(false);
         setSelectedToppings([]);
+        setAdditionalToppings([]);
     };
 
-    const handleCheckboxChange = (event) => {
+    const handleCheckboxChange = (event, isAdditional = false) => {
         const { value } = event.target;
-        if (selectedToppings.includes(value)) {
-            setSelectedToppings(selectedToppings.filter(topping => topping !== value));
+        const setFunction = isAdditional ? setAdditionalToppings : setSelectedToppings;
+        const currentList = isAdditional ? additionalToppings : selectedToppings;
+
+        if (currentList.includes(value)) {
+            setFunction(currentList.filter(topping => topping !== value));
         } else {
-            setSelectedToppings([...selectedToppings, value]);
+            if (!isAdditional && selectedToppings.length >= selectedAçai.qtdComplemento) {
+                alert(`Você atingiu o limite de ${selectedAçai.qtdComplemento} complementos.`);
+                return;
+            }
+            setFunction([...currentList, value]);
         }
+    };
+
+    const calculateAdditionalCost = () => {
+        return additionalToppings.reduce((total, toppingName) => {
+            const topping = acompanhamentos.find(acomp => acomp.nomeAcompanhamento === toppingName);
+            return topping ? total + topping.precoAcompanhamento : total;
+        }, 0);
+    };
+
+    const calculateItemTotal = () => {
+        if (!selectedAçai) return 0;
+        const additionalCost = calculateAdditionalCost();
+        return selectedAçai.precoProduto + additionalCost;
     };
 
     const handleAddToCart = () => {
         if (!selectedAçai) return;
 
-        const additionalToppingsCount = selectedToppings.length;
-        const additionalCost = additionalToppingsCount > selectedAçai.qtdComplemento ? (additionalToppingsCount - selectedAçai.qtdComplemento) * 2 : 0;
+        const additionalCost = calculateAdditionalCost();
 
         const cartItem = {
-            açaí: {
-                ...selectedAçai,
-                additionalCost
-            },
-            toppings: selectedToppings
+            id: new Date().getTime(),
+            açaí: { ...selectedAçai, additionalCost },
+            toppings: [...selectedToppings, ...additionalToppings],
         };
 
-        setCart([...cart, cartItem]);
-
-        setShowConfirmationModal(true);
-        handleClose(); 
+        const newCart = [...cart, cartItem];
+        setCart(newCart);
+        handleClose();
     };
 
-    const handleFinalizePurchase = () => {
-        setShowConfirmationModal(false);
-        setShowCart(true); 
-    };
-
-    const handleCloseCart = () => {
-        setShowCart(false);
-    };
-
-    // Função para remover item do carrinho
     const handleRemoveItem = (index) => {
-        const updatedCart = cart.filter((_, i) => i !== index); // Remove o item pelo índice
-        setCart(updatedCart); // Atualiza o estado do carrinho
+        const updatedCart = cart.filter((_, i) => i !== index);
+        setCart(updatedCart);
     };
 
     const calculateTotalPrice = () => {
         return cart.reduce((total, item) => {
-            if (item.açaí && typeof item.açaí.price === 'number') {
-                const itemPrice = item.açaí.price + (item.açaí.additionalCost || 0);
-                return total + itemPrice;
-            }
-            return total;
+            const itemPrice = item.açaí.precoProduto + (item.açaí.additionalCost || 0);
+            return total + itemPrice;
         }, 0);
     };
+
+    const handleShowCart = () => setShowCartModal(true);
+    const handleCloseCart = () => setShowCartModal(false);
+
+    const remainingAcompanhamentos = () =>
+        acompanhamentos.filter(acomp => !selectedToppings.includes(acomp.nomeAcompanhamento));
 
     return (
         <div className="teste">
@@ -105,12 +126,12 @@ const Home = () => {
             <div className="container mt-5">
                 <h2>Escolha seu tamanho</h2>
                 <div className="row mt-5">
-                    {normal.map((açai, index) => (
+                    {acais.map((açai, index) => (
                         <div className="col-md-3 col-sm-6 mb-4" key={index}>
-                            <Card 
-                                name={açai.name} 
-                                size={açai.size} 
-                                price={açai.price} 
+                            <Card
+                                name={açai.nomeProduto}
+                                size={`${açai.tamanhoProduto} ml`}
+                                price={açai.precoProduto}
                                 qtdComplemento={açai.qtdComplemento}
                                 onShow={() => handleShow(açai)}
                             />
@@ -122,34 +143,53 @@ const Home = () => {
                 <Localizacao />
             </div>
 
-            {/* Modal do Açaí */}
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Selecionar Complementos</Modal.Title>
+                    {selectedAçai && (
+                        <Modal.Title>
+                            {selectedAçai.nomeProduto} {selectedAçai.tamanhoProduto}ml - R$
+                            {selectedAçai.precoProduto.toFixed(2)}
+                        </Modal.Title>
+                    )}
                 </Modal.Header>
                 <Modal.Body>
-                    <h5>Tamanho: {selectedAçai?.size}</h5>
-                    <h5>Preço: R${selectedAçai?.price?.toFixed(2)}</h5>
                     <h6>Escolha seus complementos:</h6>
-                    {toppings.map(topping => (
-                        <div key={topping.id}>
-                            <input 
-                                type="checkbox" 
-                                value={topping.name} 
-                                checked={selectedToppings.includes(topping.name)}
-                                onChange={handleCheckboxChange} 
+                    {acompanhamentos.map(acomp => (
+                        <div key={acomp.idAcompanhamento}>
+                            <input
+                                type="checkbox"
+                                value={acomp.nomeAcompanhamento}
+                                checked={selectedToppings.includes(acomp.nomeAcompanhamento)}
+                                onChange={handleCheckboxChange}
+                                disabled={
+                                    selectedToppings.length >= selectedAçai?.qtdComplemento &&
+                                    !selectedToppings.includes(acomp.nomeAcompanhamento)
+                                }
                             />
-                            {topping.name}
+                            {acomp.nomeAcompanhamento}
                         </div>
                     ))}
-                    {/* Mensagem de alerta se exceder a quantidade de complementos */}
-                    {selectedAçai && selectedToppings.length > selectedAçai.qtdComplemento && (
-                        <p style={{ color: 'red' }}>
-                            Você está escolhendo {selectedToppings.length - selectedAçai.qtdComplemento} complemento(s) extra!
-                        </p>
+
+                    {selectedToppings.length >= selectedAçai?.qtdComplemento && (
+                        <>
+                            <h6>Acompanhamentos Adicionais:</h6>
+                            {remainingAcompanhamentos().map(acomp => (
+                                <div key={acomp.idAcompanhamento}>
+                                    <input
+                                        type="checkbox"
+                                        value={acomp.nomeAcompanhamento}
+                                        checked={additionalToppings.includes(acomp.nomeAcompanhamento)}
+                                        onChange={(e) => handleCheckboxChange(e, true)}
+                                    />
+                                    {acomp.nomeAcompanhamento} - R$
+                                    {acomp.precoAcompanhamento.toFixed(2)}
+                                </div>
+                            ))}
+                        </>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
+                    <h5>Total: R${calculateItemTotal().toFixed(2)}</h5>
                     <Button variant="secondary" onClick={handleClose}>
                         Fechar
                     </Button>
@@ -159,61 +199,21 @@ const Home = () => {
                 </Modal.Footer>
             </Modal>
 
-            {/* Modal de Confirmação */}
-            <Modal show={showConfirmationModal} onHide={() => setShowConfirmationModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Adicionar ao Carrinho</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <h5>Açai: {selectedAçai?.name}</h5>
-                    <h6>Complementos selecionados: {selectedToppings.join(', ')}</h6>
-                    <h6>Total: R$
-                        {selectedAçai ? (
-                            (selectedAçai.price + (selectedToppings.length > selectedAçai.qtdComplemento ? (selectedToppings.length - selectedAçai.qtdComplemento) * 2 : 0)).toFixed(2)
-                        ) : "0.00"}
-                    </h6>
-                    <p>
-                        {selectedToppings.length > selectedAçai?.qtdComplemento &&
-                        `Você escolheu ${selectedToppings.length - selectedAçai.qtdComplemento} complemento(s) adicional(is).`}
-                    </p>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => {
-                        setShowConfirmationModal(false);
-                        setShowModal(true);
-                    }}>
-                        Comprar mais
-                    </Button>
-                    <Button variant="primary" onClick={handleFinalizePurchase}>
-                        Pagamento/Entrega
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <Cart
+                show={showCartModal}
+                onClose={handleCloseCart}
+                cart={cart}
+                totalPrice={calculateTotalPrice()}
+                onRemoveItem={handleRemoveItem}
+            />
 
-            {/* Carrinho */}
-            {showCart && (
-                <Cart 
-                    cart={cart} 
-                    totalPrice={calculateTotalPrice()} 
-                    onClose={handleCloseCart} 
-                    onRemoveItem={handleRemoveItem} // Passando a função para remover itens
-                />
-            )}
-
-            {/* Botão Finalizar Compra */}
             {cart.length > 0 && (
-                <button 
-                    className="btn btn-primary ctn" 
-                    style={{
-                        position: 'fixed', 
-                        bottom: '20px',   
-                        right: '20px',    
-                        padding: '10px 20px', 
-                        fontSize: '16px'
-                    }} 
-                    onClick={() => setShowCart(true)}
+                <button
+                    className="btn btn-primary ctn"
+                    style={{ position: 'fixed', bottom: '20px', right: '20px', padding: '10px 20px', fontSize: '16px' }}
+                    onClick={handleShowCart}
                 >
-                    Finalizar compra
+                    Ver Carrinho
                 </button>
             )}
         </div>

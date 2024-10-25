@@ -15,7 +15,7 @@ const Card = ({ name, size, price, qtdComplemento, onShow }) => {
                 <p className="card-text">Quantidade de Complemento: {qtdComplemento}</p>
                 <div className="row-flex btn-card p-4">
                     <Button variant="primary" onClick={onShow}>
-                        Pedir açaí {name}
+                        Pedir {name}
                     </Button>
                 </div>
             </div>

@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const Banner = () => {
     return (
-        <div className="d-flex justify-content-between align-items-center position-relative">
+        <div className="d-flex justify-content-between align-items-center position-relative py-4">
             <button className="btn btn-primary ctn text-center text-white position-absolute top-50 start-0 translate-middle-y ms-5 py-2 px-4"> {/* Ajuste o valor da margem esquerda se necessário */}
                 Montar meu Pedido
             </button>
