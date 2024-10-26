@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 
-const GOOGLE_API_KEY = 'AIzaSyBahUObidgNkGPbsGIbs62XPlPpULrWKBU'; // Insira sua API Key do Google Maps
+const GOOGLE_API_KEY = 'AIzaSyBahUObidgNkGPbsGIbs62XPlPpULrWKBU'; 
 
 const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
     const [showPagamentoModal, setShowPagamentoModal] = useState(false);
-    const [usarEnderecoCadastrado, setUsarEnderecoCadastrado] = useState(true);
-    const [enderecoCadastrado, setEnderecoCadastrado] = useState('');
+    const [usarEnderecoCadastrado, setUsarEnderecoCadastrado] = useState(false);
+    const [enderecoCadastrado, setEnderecoCadastrado] = useState({});
     const [cep, setCep] = useState('');
     const [rua, setRua] = useState('');
     const [numero, setNumero] = useState('');
@@ -21,7 +21,6 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
     const [cepLoja, setCepLoja] = useState('');
     const [valorKM, setValorKM] = useState(0);
 
-    // Busca CEP e valor por KM da loja no backend Spring Boot
     useEffect(() => {
         const fetchLojaData = async () => {
             try {
@@ -37,8 +36,8 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
         };
         fetchLojaData();
 
-        const savedEndereco = localStorage.getItem('enderecoUsuario');
-        if (savedEndereco) setEnderecoCadastrado(savedEndereco);
+        const savedEndereco = JSON.parse(localStorage.getItem('enderecoUsuario')) || {};
+        setEnderecoCadastrado(savedEndereco);
     }, []);
 
     const handleCepChange = async (e) => {
@@ -50,7 +49,7 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                 const response = await axios.get(`https://viacep.com.br/ws/${novoCep}/json/`);
                 if (response.data && !response.data.erro) {
                     setRua(response.data.logradouro);
-                    calculateDistance(novoCep); // Calcula a distância
+                    calculateDistance(novoCep);
                 } else {
                     alert('CEP não encontrado!');
                 }
@@ -65,10 +64,8 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
             const response = await axios.get(
                 `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${cepLoja}&destinations=${cepDestino}&key=${GOOGLE_API_KEY}`
             );
-    
+
             const data = response.data;
-    
-            // Validação para garantir que os dados estejam no formato esperado
             if (
                 data.rows &&
                 data.rows.length > 0 &&
@@ -77,9 +74,9 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                 data.rows[0].elements[0].status === 'OK'
             ) {
                 const distanceInMeters = data.rows[0].elements[0].distance.value;
-                const distanceInKm = distanceInMeters / 1000; // Converte para KM
+                const distanceInKm = Math.round(distanceInMeters / 1000); // Arredonda para o inteiro mais próximo
                 setDistancia(distanceInKm);
-    
+
                 const custoFrete = distanceInKm * valorKM;
                 setFrete(custoFrete);
             } else {
@@ -121,7 +118,7 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
 
     const handleFinalizePurchase = () => {
         const endereco = usarEnderecoCadastrado
-            ? enderecoCadastrado
+            ? `${enderecoCadastrado.rua}, ${enderecoCadastrado.numero} - ${enderecoCadastrado.complemento}, CEP: ${enderecoCadastrado.cep}`
             : `${rua}, ${numero} - ${complemento}, CEP: ${cep}`;
 
         alert(`Pedido finalizado! Entrega para: ${endereco}`);
@@ -171,13 +168,14 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
-                        <h4>Endereço de Entrega</h4>
-                        <Form.Check 
-                            type="checkbox" 
-                            label="Usar endereço cadastrado" 
-                            checked={usarEnderecoCadastrado}
-                            onChange={(e) => setUsarEnderecoCadastrado(e.target.checked)}
-                        />
+                        {Object.keys(enderecoCadastrado).length > 0 && (
+                            <Form.Check 
+                                type="checkbox" 
+                                label="Usar endereço padrão" 
+                                checked={usarEnderecoCadastrado}
+                                onChange={(e) => setUsarEnderecoCadastrado(e.target.checked)}
+                            />
+                        )}
                         {!usarEnderecoCadastrado && (
                             <>
                                 <Row className="mt-3">
@@ -185,10 +183,9 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                                         <Form.Group>
                                             <Form.Label>CEP</Form.Label>
                                             <Form.Control 
-                                                type="text" 
+                                                type="number" 
                                                 value={cep} 
                                                 onChange={handleCepChange} 
-                                                maxLength={8}
                                                 placeholder="Digite o CEP" 
                                             />
                                         </Form.Group>
@@ -200,9 +197,8 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                                         </Form.Group>
                                     </Col>
                                 </Row>
-
                                 <Row className="mt-3">
-                                    <Col md={6}>
+                                    <Col md={4}>
                                         <Form.Group>
                                             <Form.Label>Número</Form.Label>
                                             <Form.Control 
@@ -213,7 +209,7 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6}>
+                                    <Col md={8}>
                                         <Form.Group>
                                             <Form.Label>Complemento</Form.Label>
                                             <Form.Control 
