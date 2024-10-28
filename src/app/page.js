@@ -1,3 +1,4 @@
+//page.js
 "use client";
 
 import Menu from '../components/Menu';
@@ -5,6 +6,7 @@ import Banner from '../components/Banner';
 import Card from '../components/Card';
 import Section from '../components/Section';
 import Localizacao from '../components/Localizacao';
+import { useUser } from './UserContext';
 import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import Cart from '../components/Cart';
@@ -116,107 +118,110 @@ const Home = () => {
     const handleShowCart = () => setShowCartModal(true);
     const handleCloseCart = () => setShowCartModal(false);
 
-    const remainingAcompanhamentos = () =>
+    const remainingAcompanhamentos = () => {
         acompanhamentos.filter(acomp => !selectedToppings.includes(acomp.nomeAcompanhamento));
+    }
 
     return (
-        <div className="teste">
-            <Menu />
-            <Banner />
-            <div className="container mt-5">
-                <h2>Escolha seu tamanho</h2>
-                <div className="row mt-5">
-                    {acais.map((açai, index) => (
-                        <div className="col-md-3 col-sm-6 mb-4" key={index}>
-                            <Card
-                                name={açai.nomeProduto}
-                                size={`${açai.tamanhoProduto} ml`}
-                                price={açai.precoProduto}
-                                qtdComplemento={açai.qtdComplemento}
-                                onShow={() => handleShow(açai)}
-                            />
-                        </div>
-                    ))}
+        <UserProvider>
+            <div className="teste">
+                <Menu />
+                <Banner />
+                <div className="container mt-5">
+                    <h2>Escolha seu tamanho</h2>
+                    <div className="row mt-5">
+                        {acais.map((açai, index) => (
+                            <div className="col-md-3 col-sm-6 mb-4" key={index}>
+                                <Card
+                                    name={açai.nomeProduto}
+                                    size={`${açai.tamanhoProduto} ml`}
+                                    price={açai.precoProduto}
+                                    qtdComplemento={açai.qtdComplemento}
+                                    onShow={() => handleShow(açai)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <Section />
+                    <h2>Localização</h2>
+                    <Localizacao />
                 </div>
-                <Section />
-                <h2>Localização</h2>
-                <Localizacao />
+
+                <Modal show={showModal} onHide={handleClose}>
+                    <Modal.Header closeButton>
+                        {selectedAçai && (
+                            <Modal.Title>
+                                {selectedAçai.nomeProduto} {selectedAçai.tamanhoProduto}ml - R$
+                                {selectedAçai.precoProduto.toFixed(2)}
+                            </Modal.Title>
+                        )}
+                    </Modal.Header>
+                    <Modal.Body>
+                        <h6>Escolha seus complementos:</h6>
+                        {acompanhamentos.map(acomp => (
+                            <div key={acomp.idAcompanhamento}>
+                                <input
+                                    type="checkbox"
+                                    value={acomp.nomeAcompanhamento}
+                                    checked={selectedToppings.includes(acomp.nomeAcompanhamento)}
+                                    onChange={handleCheckboxChange}
+                                    disabled={
+                                        selectedToppings.length >= selectedAçai?.qtdComplemento &&
+                                        !selectedToppings.includes(acomp.nomeAcompanhamento)
+                                    }
+                                />
+                                {acomp.nomeAcompanhamento}
+                            </div>
+                        ))}
+
+                        {selectedToppings.length >= selectedAçai?.qtdComplemento && (
+                            <>
+                                <h6>Acompanhamentos Adicionais:</h6>
+                                {remainingAcompanhamentos().map(acomp => (
+                                    <div key={acomp.idAcompanhamento}>
+                                        <input
+                                            type="checkbox"
+                                            value={acomp.nomeAcompanhamento}
+                                            checked={additionalToppings.includes(acomp.nomeAcompanhamento)}
+                                            onChange={(e) => handleCheckboxChange(e, true)}
+                                        />
+                                        {acomp.nomeAcompanhamento} - R$
+                                        {acomp.precoAcompanhamento.toFixed(2)}
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <h5>Total: R${calculateItemTotal().toFixed(2)}</h5>
+                        <Button variant="secondary" onClick={handleClose}>
+                            Fechar
+                        </Button>
+                        <Button variant="primary" onClick={handleAddToCart}>
+                            Adicionar ao Carrinho
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
+                <Cart
+                    show={showCartModal}
+                    onClose={handleCloseCart}
+                    cart={cart}
+                    totalPrice={calculateTotalPrice()}
+                    onRemoveItem={handleRemoveItem}
+                />
+
+                {cart.length > 0 && (
+                    <button
+                        className="btn btn-primary ctn"
+                        style={{ position: 'fixed', bottom: '20px', right: '20px', padding: '10px 20px', fontSize: '16px' }}
+                        onClick={handleShowCart}
+                    >
+                        Ver Carrinho
+                    </button>
+                )}
             </div>
-
-            <Modal show={showModal} onHide={handleClose}>
-                <Modal.Header closeButton>
-                    {selectedAçai && (
-                        <Modal.Title>
-                            {selectedAçai.nomeProduto} {selectedAçai.tamanhoProduto}ml - R$
-                            {selectedAçai.precoProduto.toFixed(2)}
-                        </Modal.Title>
-                    )}
-                </Modal.Header>
-                <Modal.Body>
-                    <h6>Escolha seus complementos:</h6>
-                    {acompanhamentos.map(acomp => (
-                        <div key={acomp.idAcompanhamento}>
-                            <input
-                                type="checkbox"
-                                value={acomp.nomeAcompanhamento}
-                                checked={selectedToppings.includes(acomp.nomeAcompanhamento)}
-                                onChange={handleCheckboxChange}
-                                disabled={
-                                    selectedToppings.length >= selectedAçai?.qtdComplemento &&
-                                    !selectedToppings.includes(acomp.nomeAcompanhamento)
-                                }
-                            />
-                            {acomp.nomeAcompanhamento}
-                        </div>
-                    ))}
-
-                    {selectedToppings.length >= selectedAçai?.qtdComplemento && (
-                        <>
-                            <h6>Acompanhamentos Adicionais:</h6>
-                            {remainingAcompanhamentos().map(acomp => (
-                                <div key={acomp.idAcompanhamento}>
-                                    <input
-                                        type="checkbox"
-                                        value={acomp.nomeAcompanhamento}
-                                        checked={additionalToppings.includes(acomp.nomeAcompanhamento)}
-                                        onChange={(e) => handleCheckboxChange(e, true)}
-                                    />
-                                    {acomp.nomeAcompanhamento} - R$
-                                    {acomp.precoAcompanhamento.toFixed(2)}
-                                </div>
-                            ))}
-                        </>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <h5>Total: R${calculateItemTotal().toFixed(2)}</h5>
-                    <Button variant="secondary" onClick={handleClose}>
-                        Fechar
-                    </Button>
-                    <Button variant="primary" onClick={handleAddToCart}>
-                        Adicionar ao Carrinho
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-
-            <Cart
-                show={showCartModal}
-                onClose={handleCloseCart}
-                cart={cart}
-                totalPrice={calculateTotalPrice()}
-                onRemoveItem={handleRemoveItem}
-            />
-
-            {cart.length > 0 && (
-                <button
-                    className="btn btn-primary ctn"
-                    style={{ position: 'fixed', bottom: '20px', right: '20px', padding: '10px 20px', fontSize: '16px' }}
-                    onClick={handleShowCart}
-                >
-                    Ver Carrinho
-                </button>
-            )}
-        </div>
+        </UserProvider>
     );
 };
 

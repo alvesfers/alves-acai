@@ -1,3 +1,4 @@
+//Menu.js
 "use client";
 
 import Link from 'next/link';
@@ -75,11 +76,30 @@ const Menu = () => {
                 nivelUsuario: 1, // Nível de usuário padrão
             });
 
-            alert('Cadastro realizado com sucesso!');
-            handleCloseCadastro();
+            // Após o cadastro, realizar o login automaticamente
+            const response = await axios.post('http://localhost:8080/usuarios/login', {
+                emailUsuario: email,
+                senhaUsuario: senha,
+            });
+
+            if (response.data === 'Login bem-sucedido!') {
+                const usuarioResponse = await axios.get(`http://localhost:8080/usuarios/${email}`);
+                const { nomeUsuario, nivelUsuario } = usuarioResponse.data;
+
+                localStorage.setItem('nomeUsuario', nomeUsuario);
+                localStorage.setItem('nivelUsuario', nivelUsuario);
+
+                setUsuarioNome(nomeUsuario.split(' ')[0]);
+                setNivelUsuario(nivelUsuario);
+
+                alert('Cadastro e login realizados com sucesso!');
+                handleCloseCadastro();
+            } else {
+                alert('Erro ao logar automaticamente após o cadastro.');
+            }
         } catch (error) {
-            console.error('Erro ao cadastrar usuário:', error);
-            alert('Erro ao cadastrar usuário. Tente novamente.');
+            console.error('Erro ao cadastrar ou logar usuário:', error);
+            alert('Erro ao cadastrar ou logar usuário. Tente novamente.');
         }
     };
 
