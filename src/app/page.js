@@ -6,7 +6,7 @@ import Banner from '../components/Banner';
 import Card from '../components/Card';
 import Section from '../components/Section';
 import Localizacao from '../components/Localizacao';
-import { useUser } from './UserContext';
+import { UserProvider } from './UserContext';
 import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import Cart from '../components/Cart';
