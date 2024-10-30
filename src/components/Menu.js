@@ -15,12 +15,14 @@ const Menu = () => {
     const [nome, setNome] = useState('');
     const [usuarioNome, setUsuarioNome] = useState(null);
     const [nivelUsuario, setNivelUsuario] = useState(null);
+    const [cepUsuario, setCepUsuario] = useState(null);
     const router = useRouter();
 
     // Verifica se há um usuário logado ao carregar o componente
     useEffect(() => {
         const nomeUsuario = localStorage.getItem('nomeUsuario');
         const nivel = localStorage.getItem('nivelUsuario');
+        const cep = localStorage.getItem('cepUsuario');
 
         if (nomeUsuario) {
             setUsuarioNome(nomeUsuario.split(' ')[0]);
@@ -45,15 +47,17 @@ const Menu = () => {
 
             if (response.data === 'Login bem-sucedido!') {
                 const usuarioResponse = await axios.get(`http://localhost:8080/usuarios/${email}`);
-                const { nomeUsuario, nivelUsuario } = usuarioResponse.data;
+                const { nomeUsuario, nivelUsuario, cepUsuario } = usuarioResponse.data;
 
                 localStorage.setItem('nomeUsuario', nomeUsuario);
                 localStorage.setItem('nivelUsuario', nivelUsuario);
+                localStorage.setItem('cepUsuario', cepUsuario);
 
                 setUsuarioNome(nomeUsuario.split(' ')[0]);
                 setNivelUsuario(nivelUsuario);
+                setCepUsuario(cepUsuario);
                 handleCloseLogin();
-            } else {
+            } else {    
                 alert('Credenciais inválidas!');
             }
         } catch (error) {
@@ -84,13 +88,15 @@ const Menu = () => {
 
             if (response.data === 'Login bem-sucedido!') {
                 const usuarioResponse = await axios.get(`http://localhost:8080/usuarios/${email}`);
-                const { nomeUsuario, nivelUsuario } = usuarioResponse.data;
+                const { nomeUsuario, nivelUsuario, cepUsuario } = usuarioResponse.data;
 
                 localStorage.setItem('nomeUsuario', nomeUsuario);
                 localStorage.setItem('nivelUsuario', nivelUsuario);
+                localStorage.setItem('cepUsuario', cepUsuario);
 
                 setUsuarioNome(nomeUsuario.split(' ')[0]);
                 setNivelUsuario(nivelUsuario);
+                setCepUsuario(cepUsuario);
 
                 alert('Cadastro e login realizados com sucesso!');
                 handleCloseCadastro();
@@ -106,6 +112,7 @@ const Menu = () => {
     const handleLogout = () => {
         localStorage.removeItem('nomeUsuario');
         localStorage.removeItem('nivelUsuario');
+        localStorage.removeItem('cepUsuario');
         setUsuarioNome(null);
         setNivelUsuario(null);
         router.push('/');

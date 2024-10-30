@@ -119,8 +119,10 @@ const Home = () => {
     const handleCloseCart = () => setShowCartModal(false);
 
     const remainingAcompanhamentos = () => {
-        acompanhamentos.filter(acomp => !selectedToppings.includes(acomp.nomeAcompanhamento));
-    }
+        return (acompanhamentos || []).filter(
+            acomp => !selectedToppings.includes(acomp.nomeAcompanhamento)
+        );
+    };
 
     return (
         <UserProvider>

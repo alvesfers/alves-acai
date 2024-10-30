@@ -11,7 +11,8 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [nome, setNome] = useState('');
-    const [usuarioNome, setUsuarioNome] = useState(null);
+    const [usuarioNome, setUsuarioNome] = localStorage.getItem('nomeUsuario');
+    const [usuariocep, setUsuariocep] = useState(null);
     const [nivelUsuario, setNivelUsuario] = useState(null);
 
     const handleShowLogin = () => setShowLoginModal(true);
@@ -30,13 +31,15 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
             if (response.data === 'Login bem-sucedido!') {
                 console.log("teste");
                 const usuarioResponse = await axios.get(`http://localhost:8080/usuarios/${email}`);
-                const { nomeUsuario, nivelUsuario } = usuarioResponse.data;
+                const { nomeUsuario, nivelUsuario,cepUsuario } = usuarioResponse.data;
 
                 localStorage.setItem('nomeUsuario', nomeUsuario);
                 localStorage.setItem('nivelUsuario', nivelUsuario);
+                localStorage.setItem('cepUsuario', cepUsuario);
 
                 setUsuarioNome(nomeUsuario.split(' ')[0]);
                 setNivelUsuario(nivelUsuario);
+                setCepUsuario(cepUsuario);
                 handleCloseLogin();
 
                 setShowPagamentoModal(true);
