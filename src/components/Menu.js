@@ -128,12 +128,6 @@ const Menu = () => {
                         <Link href="/" passHref legacyBehavior>
                             <Nav.Link>Home</Nav.Link>
                         </Link>
-                        <Link href="/tamanhos" passHref legacyBehavior>
-                            <Nav.Link>Tamanhos de Açaí</Nav.Link>
-                        </Link>
-                        <Link href="/contato" passHref legacyBehavior>
-                            <Nav.Link>Contato</Nav.Link>
-                        </Link>
                         {nivelUsuario === 2 && (
                             <Link href="/admin" passHref legacyBehavior>
                                 <Nav.Link>Painel Administrador</Nav.Link>

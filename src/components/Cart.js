@@ -11,9 +11,9 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [nome, setNome] = useState('');
-    const [usuarioNome, setUsuarioNome] = localStorage.getItem('nomeUsuario');
-    const [usuariocep, setUsuariocep] = useState(null);
-    const [nivelUsuario, setNivelUsuario] = useState(null);
+    const usuarioNome = localStorage.getItem('nomeUsuario') ?? '';
+    const usuariocep = localStorage.getItem('usuariocep') ?? '';
+    const nivelUsuario = localStorage.getItem('nivelUsuario') ?? '';
 
     const handleShowLogin = () => setShowLoginModal(true);
     const handleCloseLogin = () => setShowLoginModal(false);
@@ -157,28 +157,6 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
         }
     };
 
-    const handleCheckboxChange = (e) => {
-        const isChecked = e.target.checked;
-        setUsarEnderecoCadastrado(isChecked);
-    
-        if (isChecked) {
-            // Preencher campos com endereço salvo e recalcular frete
-            setCep(enderecoCadastrado.cep);
-            setRua(enderecoCadastrado.rua);
-            setNumero(enderecoCadastrado.numero);
-            setComplemento(enderecoCadastrado.complemento);
-            calculateDistance(enderecoCadastrado.cep);
-        } else {
-            // Limpar campos para digitar um novo endereço
-            setCep('');
-            setRua('');
-            setNumero('');
-            setComplemento('');
-            setDistancia(null);
-            setFrete(0);
-        }
-    };
-
     const calculateDistance = async (cepDestino) => {
         try {
             const response = await axios.get(
@@ -295,12 +273,6 @@ const Cart = ({ show, onClose, cart, onRemoveItem, totalPrice }) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
-                        <Form.Check 
-                            type="checkbox" 
-                            label="Usar endereço padrão" 
-                            checked={usarEnderecoCadastrado}
-                            onChange={handleCheckboxChange}
-                        />
                             <>
                                 <Row className="mt-3">
                                     <Col md={4}>

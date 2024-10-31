@@ -9,7 +9,14 @@ export default function Produtos() {
     const [produtos, setProdutos] = useState([]);
     const [filtro, setFiltro] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [produtoAtual, setProdutoAtual] = useState({ nomeProduto: '', descricaoProduto: '', precoProduto: 0 });
+    const [produtoAtual, setProdutoAtual] = useState({
+        nomeProduto: '',
+        descricaoProduto: '',
+        precoProduto: 0,
+        tamanhoProduto: '',
+        tipoProduto: '1',
+        qtdComplemento: 0,
+    });
 
     useEffect(() => {
         fetchProdutos();
@@ -47,7 +54,20 @@ export default function Produtos() {
                     onChange={(e) => setFiltro(e.target.value)}
                     className="mb-3"
                 />
-                <Button variant="primary" onClick={() => { setShowModal(true); setProdutoAtual({ nomeProduto: '', descricaoProduto: '', precoProduto: 0 }); }}>
+                <Button
+                    variant="primary"
+                    onClick={() => {
+                        setShowModal(true);
+                        setProdutoAtual({
+                            nomeProduto: '',
+                            descricaoProduto: '',
+                            precoProduto: 0,
+                            tamanhoProduto: '',
+                            tipoProduto: '1',
+                            qtdComplemento: 0,
+                        });
+                    }}
+                >
                     Adicionar Produto
                 </Button>
                 <Table striped bordered hover className="mt-3">
@@ -56,28 +76,53 @@ export default function Produtos() {
                             <th>Nome</th>
                             <th>Descrição</th>
                             <th>Preço</th>
+                            <th>Tamanho</th>
+                            <th>Tipo</th>
+                            <th>Qtd Complementos</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {produtos.filter(p => p.nomeProduto.toLowerCase().includes(filtro.toLowerCase())).map((produto) => (
-                            <tr key={produto.idProduto}>
-                                <td>{produto.nomeProduto}</td>
-                                <td>{produto.descricaoProduto}</td>
-                                <td>{produto.precoProduto}</td>
-                                <td>
-                                    <Button variant="warning" onClick={() => { setProdutoAtual(produto); setShowModal(true); }}>Editar</Button>{' '}
-                                    <Button variant="danger" onClick={() => handleDelete(produto.idProduto)}>Excluir</Button>
-                                </td>
-                            </tr>
-                        ))}
+                        {produtos
+                            .filter((p) =>
+                                p.nomeProduto.toLowerCase().includes(filtro.toLowerCase())
+                            )
+                            .map((produto) => (
+                                <tr key={produto.idProduto}>
+                                    <td>{produto.nomeProduto}</td>
+                                    <td>{produto.descricaoProduto}</td>
+                                    <td>{produto.precoProduto}</td>
+                                    <td>{produto.tamanhoProduto}</td>
+                                    <td>{produto.tipoProduto}</td>
+                                    <td>{produto.qtdComplemento}</td>
+                                    <td>
+                                        <Button
+                                            variant="warning"
+                                            onClick={() => {
+                                                setProdutoAtual(produto);
+                                                setShowModal(true);
+                                            }}
+                                        >
+                                            Editar
+                                        </Button>{' '}
+                                        <Button
+                                            variant="danger"
+                                            onClick={() => handleDelete(produto.idProduto)}
+                                        >
+                                            Excluir
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </Table>
             </Container>
 
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{produtoAtual.idProduto ? 'Editar' : 'Adicionar'} Produto</Modal.Title>
+                    <Modal.Title>
+                        {produtoAtual.idProduto ? 'Editar' : 'Adicionar'} Produto
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -86,7 +131,12 @@ export default function Produtos() {
                             <Form.Control
                                 type="text"
                                 value={produtoAtual.nomeProduto}
-                                onChange={(e) => setProdutoAtual({ ...produtoAtual, nomeProduto: e.target.value })}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        nomeProduto: e.target.value,
+                                    })
+                                }
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -94,7 +144,12 @@ export default function Produtos() {
                             <Form.Control
                                 type="text"
                                 value={produtoAtual.descricaoProduto}
-                                onChange={(e) => setProdutoAtual({ ...produtoAtual, descricaoProduto: e.target.value })}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        descricaoProduto: e.target.value,
+                                    })
+                                }
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
@@ -102,10 +157,59 @@ export default function Produtos() {
                             <Form.Control
                                 type="number"
                                 value={produtoAtual.precoProduto}
-                                onChange={(e) => setProdutoAtual({ ...produtoAtual, precoProduto: parseFloat(e.target.value) })}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        precoProduto: parseFloat(e.target.value),
+                                    })
+                                }
                             />
                         </Form.Group>
-                        <Button variant="primary" onClick={handleSave}>Salvar</Button>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Tamanho</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={produtoAtual.tamanhoProduto}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        tamanhoProduto: e.target.value,
+                                    })
+                                }
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Tipo</Form.Label>
+                            <Form.Select
+                                value={produtoAtual.tipoProduto}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        tipoProduto: e.target.value,
+                                    })
+                                }
+                            >
+                                <option value="1">Açaí</option>
+                                <option value="2">Salgados</option>
+                                <option value="3">Bebidas</option>
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Quantidade de Complementos</Form.Label>
+                            <Form.Control
+                                type="number"
+                                value={produtoAtual.qtdComplemento}
+                                onChange={(e) =>
+                                    setProdutoAtual({
+                                        ...produtoAtual,
+                                        qtdComplemento: parseInt(e.target.value),
+                                    })
+                                }
+                            />
+                        </Form.Group>
+                        <Button variant="primary" onClick={handleSave}>
+                            Salvar
+                        </Button>
                     </Form>
                 </Modal.Body>
             </Modal>
